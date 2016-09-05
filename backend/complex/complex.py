@@ -29,7 +29,7 @@ class Complex:
                     Room(RoomType.trapped_chamber), Room(RoomType.trapped_chamber),
                     Room(RoomType.flooded_chamber), Room(RoomType.flooded_chamber),
                     Room(RoomType.acid_bath), Room(RoomType.acid_bath),
-                    Room(RoomType.vortex_chamber), Room(RoomType.vortex_chamber),
+                    Room(RoomType.vortex_room), Room(RoomType.vortex_room),
                     Room(RoomType.mortal_chamber), Room(RoomType.control_room)]
         elif self.complex_type == ComplexType.expert_competition:
             return [Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
@@ -41,10 +41,10 @@ class Complex:
                     Room(RoomType.acid_bath), Room(RoomType.acid_bath),
                     Room(RoomType.twin_chamber), Room(RoomType.twin_chamber),
                     Room(RoomType.prison_chamber), Room(RoomType.prison_chamber),
-                    Room(RoomType.mortal_chamber), Room(RoomType.vortex_chamber),
+                    Room(RoomType.mortal_chamber), Room(RoomType.vortex_room),
                     Room(RoomType.control_room), Room(RoomType.illusion_chamber)]
         else:
-            return  [Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
+            return [Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
                     Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
                     Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
                     Room(RoomType.dark_chamber), Room(RoomType.dark_chamber),
@@ -53,17 +53,19 @@ class Complex:
                     Room(RoomType.flooded_chamber), Room(RoomType.flooded_chamber),
                     Room(RoomType.acid_bath), Room(RoomType.acid_bath),
                     Room(RoomType.mortal_chamber), Room(RoomType.mortal_chamber),
-                    Room(RoomType.vortex_chamber), Room(RoomType.control_chamber), 
+                    Room(RoomType.vortex_room), Room(RoomType.control_chamber), 
                     Room(RoomType.illusion_chamber), Room(RoomType.moving_chamber)]
 
     def  __complex_type_shuffled_rooms(self, complex_type):
         rooms = self.__complex_type_rooms(complex_type)
         random.shuffle(rooms)
-        interior = [Room(RoomType.central_room)] + random[:9]
-        exterior = [Room(RoomType.vision_chamber)] + [Room(RoomType.room_25)] + random[9:22]
-        random.shuffle(rooms)
+        interior = [Room(RoomType.central_room)] + rooms[:9]
+        exterior = [Room(RoomType.vision_chamber)] + [Room(RoomType.room_25)] + rooms[9:22]
+        random.shuffle(exterior)
         return interior + exterior
 
+    def display_rooms(self):
+        print(self.rooms)
         
 
 

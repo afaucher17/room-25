@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-from enum import IntEnum
-class RoomType(IntEnum):
+from enum import Enum
+
+class RoomType(Enum):
     central_room = 1
     room_25 = 2
     vision_chamber = 3
@@ -19,7 +20,7 @@ class RoomType(IntEnum):
     flooded_chamber = 15
     acid_bath = 16
 
-class RoomDanger(IntEnum):
+class RoomDanger(Enum):
     green = 1
     yellow = 2
     red = 3
@@ -32,11 +33,11 @@ class Room:
         self.room_type = room_type
 
     def get_room_ranger(self):
-        if self.room_type < 3:
+        if int(self.room_type) < 3:
             return RoomDanger.neutral
-        elif self.room_type < 8:
+        elif int(self.room_type) < 8:
             return RoomDanger.green
-        elif self.room_type < 12:
+        elif int(self.room_type) < 12:
             return RoomDanger.yellow
         else:
             return RoomDanger.red
@@ -44,3 +45,8 @@ class Room:
     def displayRoomType(self):
         print(self.room_type)
 
+    def __str__(self):
+        return self.room_type.name
+
+    def __repr__(self):
+        return self.room_type.name
