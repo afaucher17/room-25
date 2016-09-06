@@ -10,6 +10,14 @@ class ComplexType(IntEnum):
     expert_competition = 2
     expert_suspicion = 3
 
+class ControlOrientation(IntEnum):
+    vertical = 1
+    horizontal = 2
+
+class ControlDirection(IntEnum):
+    left = 1
+    right = 2
+
 class Complex:
     'The complex in which the game happens. Additionally to the Central Room and Room\
     25, the complex is made of 23 rooms with various effects'
@@ -31,7 +39,7 @@ class Complex:
                     Room(RoomType.flooded_chamber), Room(RoomType.flooded_chamber),
                     Room(RoomType.acid_bath), Room(RoomType.acid_bath),
                     Room(RoomType.vortex_room), Room(RoomType.vortex_room),
-                    Room(RoomType.mortal_chamber), Room(RoomType.control_room)]
+                    Room(RoomType.mortal_chamber), Room(RoomType.control_chamber)]
         elif self.complex_type == ComplexType.expert_competition:
             return [Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
                     Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
@@ -43,7 +51,7 @@ class Complex:
                     Room(RoomType.twin_chamber), Room(RoomType.twin_chamber),
                     Room(RoomType.prison_chamber), Room(RoomType.prison_chamber),
                     Room(RoomType.mortal_chamber), Room(RoomType.vortex_room),
-                    Room(RoomType.control_room), Room(RoomType.illusion_chamber)]
+                    Room(RoomType.control_chamber), Room(RoomType.illusion_chamber)]
         else:
             return [Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
                     Room(RoomType.empty_chamber), Room(RoomType.empty_chamber),
@@ -76,6 +84,20 @@ class Complex:
                 else:
                     matrix[i][j] = interior.pop()
         return matrix
+
+    def control(self, orientation, direction, row):
+        if orientation == ControlOrientation.horizontal:
+            for i in range(self.SIZE - 1):
+                nxt = (i + 1) % self.SIZE if direction == ControlDirection.left else ((i - 1 + self.SIZE) % self.SIZE)
+                save = self.rooms[i][row]
+                self.rooms[i][row] = self.rooms[nxt][row]
+                self.rooms[nxt][row] = save
+        else:
+            for i in range(self.SIZE - 1):
+                nxt = (i + 1) % self.SIZE if direction == ControlDirection.left else ((i - 1 + self.SIZE) % self.SIZE)
+                save = self.rooms[row][i]
+                self.rooms[row][i] = self.rooms[row][nxt]
+                self.rooms[row][nxt] = save
 
     def display_rooms(self):
         for row in self.rooms:

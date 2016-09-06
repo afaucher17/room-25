@@ -55,7 +55,7 @@ class Room:
         print(self.room_type)
 
     def __str__(self):
-        return '??' if self.hidden else self.ABBR[self.room_type]
+        return self.ABBR[self.room_type]
 
     def __repr__(self):
         return self.room_type.name
