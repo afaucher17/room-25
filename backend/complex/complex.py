@@ -13,10 +13,11 @@ class ComplexType(IntEnum):
 class Complex:
     'The complex in which the game happens. Additionally to the Central Room and Room\
     25, the complex is made of 23 rooms with various effects'
+    SIZE = 5
 
     def __init__(self, complex_type):
         self.complex_type = complex_type
-        self.rooms = self.__complex_type_shuffled_rooms(complex_type)
+        self.rooms = self.__arrange_rooms(complex_type)
 
     def __complex_type_rooms(self, complex_type):
         if self.complex_type == ComplexType.beginner:
@@ -56,16 +57,29 @@ class Complex:
                     Room(RoomType.vortex_room), Room(RoomType.control_chamber), 
                     Room(RoomType.illusion_chamber), Room(RoomType.moving_chamber)]
 
-    def  __complex_type_shuffled_rooms(self, complex_type):
+    def  __shuffled_rooms(self, complex_type):
         rooms = self.__complex_type_rooms(complex_type)
         random.shuffle(rooms)
-        interior = [Room(RoomType.central_room)] + rooms[:9]
-        exterior = [Room(RoomType.vision_chamber)] + [Room(RoomType.room_25)] + rooms[9:22]
+        interior = rooms[:12]
+        interior.insert(6, Room(RoomType.central_room, False))
+        exterior = [Room(RoomType.vision_chamber)] + [Room(RoomType.room_25)] + rooms[12:22]
         random.shuffle(exterior)
-        return interior + exterior
+        return (interior, exterior)
+
+    def __arrange_rooms(self, complex_type):
+        interior, exterior = self.__shuffled_rooms(complex_type)
+        matrix = [[Room(RoomType.empty_chamber) for x in range(self.SIZE)] for y in range(self.SIZE)]
+        for i in range(self.SIZE):
+            for j in range(self.SIZE):
+                if j < abs(i - int(self.SIZE / 2)) or self.SIZE - j <= abs(i - int(self.SIZE / 2)):
+                    matrix[i][j] = exterior.pop()
+                else:
+                    matrix[i][j] = interior.pop()
+        return matrix
 
     def display_rooms(self):
-        print(self.rooms)
+        for row in self.rooms:
+            print(','.join(str(cell) for cell in row))
         
 
 
