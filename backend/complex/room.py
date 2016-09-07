@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from enum import Enum
 
@@ -26,6 +26,28 @@ class RoomDanger(Enum):
     red = 3
     neutral = 4
 
+class RoomEventType(Enum):
+    no_event = 0
+    vision = 1
+    moving = 2
+    control = 3
+    illusion = 4
+    room_25 = 5
+    player_move = 6
+    player_death = 7
+    player_trapped = 8
+    player_prisonned = 9
+    player_flooded = 10
+    player_frozen = 11
+    player_blind = 12
+
+class RoomEvent:
+    def __init__(self, room_event_type=RoomEventType.no_event, player=None, start=None, destination=None):
+        self.room_event_type=room_event_type
+        self.player = player
+        self.room1 = room1
+        self.room2 = room2
+
 class Room:
     'A room in the complex, they have different attributes'
     ABBR = dict([(RoomType.central_room, 'CR'), (RoomType.room_25, '25'),
@@ -37,9 +59,11 @@ class Room:
         (RoomType.mortal_chamber, 'MC'), (RoomType.illusion_chamber, 'IC'),
         (RoomType.flooded_chamber, 'FC'), (RoomType.acid_bath, 'AB')])
 
-    def __init__(self, room_type, hidden=True):
+
+    def __init__(self, room_type, hidden=True, locked=False):
         self.room_type = room_type
         self.hidden = hidden
+        self.locked = locked
 
     def get_room_ranger(self):
         if int(self.room_type) < 3:
@@ -51,6 +75,82 @@ class Room:
         else:
             return RoomDanger.red
 
+    def _twin_effect(self, rooms, player, players):
+        twin = next((room for room in rooms if room.room_type == RoomType.twin_chamber and twin.hidden == False), None)
+        if twin == None:
+            return RoomEvent(RoomEventType.no_event)
+        else:
+            player.current_room = twin
+            return RoomEvent(RoomEventType.player_move, player, self, twin)
+
+    def _vortex_effect(self, rooms, player, players):
+        central_room = next(room for room in rooms if room.room_type == RoomType.central_chamber)
+        player.current_room = central_room
+        return RoomEvent(RoomEventType.player_move, player, self, central_room)
+
+    def _prison_effect(self, rooms, player, players):
+        player.player_status = PlayerStatus.prisonned
+        return RoomEvent(RoomEventType.player_prisonned, player)
+
+    def _cold_effect(self, rooms, player, players):
+        player.player_status = PlayerStatus.frozen
+        return RoomEvent(RoomEventType.player_frozen, player)
+
+    def _blind_effect(self, rooms, player, players):
+        player.player_status = PlayerStatus.blind
+        return RoomEvent(RoomEventType.player_blind, player)
+
+    def _trapped_effect(self, rooms, player, players):
+        player.player_status = PlayerStatus.trapped
+        return RoomEvent(RoomEventType.player_trapped, player)
+
+    def _mortal_effect(self, rooms, player, players):
+        player.dead = True
+        return RoomEvent(RoomEventType.player_death, player)
+
+    def _flooded_effect(self, rooms, player, players):
+        self.locked = True
+        player.player_status = PlayerStatus.flooded
+        return RoomEvent(RoomEventType.player_flooded, player)
+
+    def _acid_bath(self, rooms, player, players):
+        previous_player = next(pl for pl in players if pl.current_room == self)
+        previous_player.dead = True
+        return RoomEvent(RoomEventType.player_death, previous_player)
+
+    def on_room_enter(self, rooms, player, players):
+        player.current_room = self
+        rt = self.room_type
+        if rt == RoomType.vision_chamber:
+            return RoomEvent(RoomEventType.vision)
+        elif rt == RoomType.moving_chamber:
+            return RoomEvent(RoomEventType.moving)
+        elif rt == RoomType.control_chamber:
+            return RoomEvent(RoomEventType.control)
+        elif rt == RoomType.twin_chamber:
+            return self._twin_effect(rooms, player, players)
+        elif rt == RoomType.moving_chamber:
+            return RoomEvent(RoomEventType.no_event)
+        elif rt == RoomType.vortex_room:
+            return self._vortex_effect(rooms, player, players)
+        elif rt == RoomType.prison_cell:
+            return self._prison_effect(rooms, player, players)
+        elif rt == RoomType.cold_chamber:
+            return self._cold_effect(rooms, player, players)
+        elif rt == RoomType.dark_chamber:
+            return self._blind_effect(rooms, player, players)
+        elif rt == RoomType.trapped_chamber:
+            return self._trapped_effect(rooms, player, players)
+        elif rt == RoomType.mortal_chamber:
+            return self._mortal_effect(rooms, player, players)
+        elif rt == RoomType.illusion_chamber:
+            return RoomEvent(RoomEventType.illusion)
+        elif rt == RoomType.flooded_chamber:
+            return self._flooded_effect(rooms, player, players)
+        elif rt == RoomType.acid_bath:
+            return self._acid_bath(rooms, player, players)
+        return RoomEvent(RoomEventType.no_event)
+
     def displayRoomType(self):
         print(self.room_type)
 
@@ -59,5 +159,3 @@ class Room:
 
     def __repr__(self):
         return self.room_type.name
-
-

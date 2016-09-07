@@ -102,9 +102,3 @@ class Complex:
     def display_rooms(self):
         for row in self.rooms:
             print(','.join(str(cell) for cell in row))
-        
-
-
-
- 
-    
