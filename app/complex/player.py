@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from enum import Enum
+
 class PlayerAction(Enum):
     look = 1
     move = 2
@@ -14,22 +16,23 @@ class PlayerStatus(Enum):
     normal = 1
     blind = 2
     trapped = 3
-    prisonned = 4
+    imprisonned = 4
     frozen = 5
     flooded = 6
 
 class Player:
     'A player in the game'
 
-    def __init__(self, player_position=PlayerPosition(), player_type=PlayerType.prisoner, current_room=None, player_position=(0, 0), player_status=PlayerStatus, dead=False):
+    def __init__(self, player_position=(0, 0), player_type=PlayerType.prisoner, current_room=None, status=PlayerStatus, dead=False):
         self.player_position = player_position
         self.player_type = player_type
         self.current_room = current_room
-        self.player_position = player_position
-        self.player_status = player_status
+        self.status = status
         self.trapped_count = 0
         self.flooded_count = 0
-        sef.dead = dead
+        self.dead = dead
 
-
-
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
