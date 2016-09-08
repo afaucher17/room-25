@@ -45,6 +45,7 @@ class RoomEventType(Enum):
     player_flooded = 10
     player_frozen = 11
     player_blind = 12
+    reveal = 13
 
 class RoomEvent:
     def __init__(self, room_event_type=RoomEventType.no_event, player=None, start=None, destination=None):
@@ -88,61 +89,57 @@ class Room:
     def _twin_effect(self, rooms, pl, players):
         twin = next((room for room in rooms if room is not self and room.room_type == RoomType.twin_chamber and room.hidden == False), None)
         if twin == None:
-            return RoomEvent(RoomEventType.no_event)
+            return []
         else:
             pl.current_room = twin
-            return RoomEvent(RoomEventType.player_move, pl, self, twin)
+            return [RoomEvent(RoomEventType.player_move, pl, self, twin)]
 
     def _vortex_effect(self, rooms, pl, players):
         central_room = next(room for room in rooms if room.room_type == RoomType.central_room)
         pl.current_room = central_room
-        return RoomEvent(RoomEventType.player_move, pl, self, central_room)
+        return [RoomEvent(RoomEventType.player_move, pl, self, central_room)]
 
     def _prison_effect(self, rooms, pl, players):
         pl.status = player.PlayerStatus.imprisonned
-        return RoomEvent(RoomEventType.player_imprisonned, pl)
+        return [RoomEvent(RoomEventType.player_imprisonned, pl)]
 
     def _cold_effect(self, rooms, pl, players):
         pl.status = player.PlayerStatus.frozen
-        return RoomEvent(RoomEventType.player_frozen, pl)
+        return [RoomEvent(RoomEventType.player_frozen, pl)]
 
     def _blind_effect(self, rooms, pl, players):
         pl.status = player.PlayerStatus.blind
-        return RoomEvent(RoomEventType.player_blind, pl)
+        return [RoomEvent(RoomEventType.player_blind, pl)]
 
     def _trapped_effect(self, rooms, pl, players):
         pl.status = player.PlayerStatus.trapped
-        return RoomEvent(RoomEventType.player_trapped, pl)
+        return [RoomEvent(RoomEventType.player_trapped, pl)]
 
     def _mortal_effect(self, rooms, pl, players):
         pl.dead = True
-        return RoomEvent(RoomEventType.player_death, pl)
+        return [RoomEvent(RoomEventType.player_death, pl)]
 
     def _flooded_effect(self, rooms, pl, players):
         self.locked = True
         pl.status = player.PlayerStatus.flooded
-        return RoomEvent(RoomEventType.player_flooded, pl)
+        return [RoomEvent(RoomEventType.player_flooded, pl)]
 
     def _acid_bath(self, rooms, pl, players):
         prevpl = next((p for p in players if p is not pl and p.current_room == self), None)
         if prevpl == None:
-            return RoomEvent(RoomEventType.no_event)
+            return []
         prevpl.dead = True
-        return RoomEvent(RoomEventType.player_death, prevpl)
+        return [RoomEvent(RoomEventType.player_death, prevpl)]
 
-    def on_room_enter(self, rooms, pl, players):
-        pl.current_room = self
-        rt = self.room_type
+    def _room_switch(self, rt, rooms, pl, players):
         if rt == RoomType.vision_chamber:
-            return RoomEvent(RoomEventType.vision)
+            return [RoomEvent(RoomEventType.vision)]
         elif rt == RoomType.moving_chamber:
-            return RoomEvent(RoomEventType.moving)
+            return [RoomEvent(RoomEventType.moving)]
         elif rt == RoomType.control_chamber:
-            return RoomEvent(RoomEventType.control)
+            return [RoomEvent(RoomEventType.control)]
         elif rt == RoomType.twin_chamber:
             return self._twin_effect(rooms, pl, players)
-        elif rt == RoomType.empty_chamber or rt == RoomType.central_room:
-            return RoomEvent(RoomEventType.no_event)
         elif rt == RoomType.vortex_room:
             return self._vortex_effect(rooms, pl, players)
         elif rt == RoomType.prison_cell:
@@ -156,12 +153,23 @@ class Room:
         elif rt == RoomType.mortal_chamber:
             return self._mortal_effect(rooms, pl, players)
         elif rt == RoomType.illusion_chamber:
-            return RoomEvent(RoomEventType.illusion)
+            return [RoomEvent(RoomEventType.illusion)]
         elif rt == RoomType.flooded_chamber:
             return self._flooded_effect(rooms, pl, players)
         elif rt == RoomType.acid_bath:
             return self._acid_bath(rooms, pl, players)
-        return RoomEvent(RoomEventType.no_event)
+        else:
+            return []
+
+
+    def on_room_enter(self, rooms, pl, players):
+        event_list = []
+        if self.hidden:
+            self.hidden = False
+            event_list += [RoomEvent(RoomEventType.reveal)]
+        pl.current_room = self
+        rt = self.room_type
+        return event_list + self._room_switch(rt, rooms, pl, players)
 
     def displayRoomType(self):
         print(self.room_type)

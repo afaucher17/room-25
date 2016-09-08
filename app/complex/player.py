@@ -20,17 +20,45 @@ class PlayerStatus(Enum):
     frozen = 5
     flooded = 6
 
+class PlayerEventType(Enum):
+    no_event = 0
+    death = 1
+
+class PlayerEvent:
+    def __init__(self, player_event_type):
+        self.player_event_type = player_event_type
+
 class Player:
     'A player in the game'
 
-    def __init__(self, player_position=(0, 0), player_type=PlayerType.prisoner, current_room=None, status=PlayerStatus, dead=False):
-        self.player_position = player_position
-        self.player_type = player_type
+    def __init__(self, position=(0, 0), type=PlayerType.prisoner, current_room=None, status=PlayerStatus, dead=False):
+        self.position = position
+        self.type = type
         self.current_room = current_room
         self.status = status
-        self.trapped_count = 0
-        self.flooded_count = 0
+        self.trapped = True
+        self.flooded = True
         self.dead = dead
+
+    def onTurnStart(self):
+        self.flooded = self.status == PlayerStatus.flooded
+        return PlayerEvent(PlayerEventType.no_event)
+
+    def onActionStart(self):
+        self.trapped = self.status == PlayerStatus.trapped
+        return PlayerEvent(PlayerEventType.no_event)
+
+    def onActionEnd(self):
+        if self.trapped:
+            self.dead = True
+            return PlayerEvent(PlayerEventType.death)
+        return PlayerEvent(PlayerEventType.no_event)
+
+    def onLastActionEnd(self):
+        if self.flooded:
+            self.dead = True
+            return PlayerEvent(PlayerEventType.death)
+        return PlayerEvent(PlayerEventType.no_event)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
