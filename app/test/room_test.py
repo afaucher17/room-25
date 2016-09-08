@@ -1,6 +1,6 @@
-from context import complex
-from complex.room import Room, RoomType, RoomEvent, RoomEventType
-from complex.player import Player, PlayerStatus
+from context import game
+from game.room import Room, RoomType, RoomEvent, RoomEventType
+from game.player import Player, PlayerStatus
 
 import unittest
 

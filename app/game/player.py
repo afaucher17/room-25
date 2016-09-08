@@ -2,6 +2,11 @@
 
 from enum import Enum
 
+try:
+    from . import action
+except:
+    import action
+
 class PlayerAction(Enum):
     look = 1
     move = 2
@@ -34,6 +39,7 @@ class Player:
     def __init__(self, position=(0, 0), type=PlayerType.prisoner, current_room=None, status=PlayerStatus, dead=False):
         self.position = position
         self.type = type
+        self.action = action.ActionPool()
         self.current_room = current_room
         self.status = status
         self.trapped = True
